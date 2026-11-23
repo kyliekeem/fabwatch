@@ -106,7 +106,6 @@ def live_monitor():
         FROM sensor_readings
         WHERE status = 'WARNING'
         ORDER BY id DESC
-        LIMIT 10
     """, connection)
 
     connection.close()
@@ -124,5 +123,14 @@ def live_monitor():
 
     st.subheader("Historical Anomaly Records")
     st.dataframe(anomaly_history, hide_index=True)
+
+    # Export historical anomalies as CSV
+    st.download_button(
+        label="Download Anomaly History",
+        data=anomaly_history.to_csv(index=False),
+        file_name="fabwatch_anomalies.csv",
+        mime="text/csv",
+        on_click="ignore"
+    )
 
 live_monitor()
