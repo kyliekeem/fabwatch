@@ -1,24 +1,23 @@
+
 import sqlite3
 
-# Connect to database
-connection = sqlite3.connect("fabwatch.db")
 
-# Create sensor readings table
-connection.execute("""
-    CREATE TABLE IF NOT EXISTS sensor_readings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        equipment_id TEXT NOT NULL,
-        pressure REAL NOT NULL,
-        status TEXT NOT NULL,
-        timestamp TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-""")
+def initialize_database():
+    connection = sqlite3.connect("fabwatch.db")
 
-# Save changes
-connection.commit()
-connection.close()
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS sensor_readings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            equipment_id TEXT NOT NULL,
+            pressure REAL NOT NULL,
+            status TEXT NOT NULL,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
-print("FabWatch database initialized successfully!")
+    connection.commit()
+    connection.close()
+
 
 def save_reading(equipment_id, pressure, status):
     connection = sqlite3.connect("fabwatch.db")
@@ -31,3 +30,8 @@ def save_reading(equipment_id, pressure, status):
 
     connection.commit()
     connection.close()
+
+
+if __name__ == "__main__":
+    initialize_database()
+    print("FabWatch database initialized successfully!")
