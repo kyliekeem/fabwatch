@@ -2,6 +2,8 @@
 # FabWatch
 ### Semiconductor Equipment Monitoring & Anomaly Detection Simulator
 
+[![FabWatch CI](https://github.com/kyliekeem/fabwatch/actions/workflows/tests.yml/badge.svg)](https://github.com/kyliekeem/fabwatch/actions/workflows/tests.yml)
+
 FabWatch is a Python-based monitoring application that simulates semiconductor etching equipment, detects abnormal chamber pressure readings, and visualizes equipment performance through an interactive dashboard.
 
 The project demonstrates data generation, threshold-based anomaly detection, persistent storage, historical analytics, and automated testing.
