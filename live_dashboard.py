@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from database import save_reading
 from anomaly_detector import classify_pressure
+from fault_injection import inject_fault
 
 # Simulated equipment settings
 SETPOINT = 50.0
@@ -26,6 +27,18 @@ if "second" not in st.session_state:
 if "running" not in st.session_state:
     st.session_state.running = True
 
+# Fault injection state
+if "inject_high_pressure" not in st.session_state:
+    st.session_state.inject_high_pressure = False
+
+# NEW: Low pressure fault
+if "inject_low_pressure" not in st.session_state:
+    st.session_state.inject_low_pressure = False
+
+# Sensor failure injection state
+if "inject_sensor_failure" not in st.session_state:
+    st.session_state.inject_sensor_failure = False
+
 # Automatically update every second
 @st.fragment(run_every="1s")
 def live_monitor():
@@ -46,20 +59,70 @@ def live_monitor():
     with col2:
         reset_clicked = st.button("Reset Simulation")
 
+    # Reset simulation
     if reset_clicked:
         st.session_state.readings = []
         st.session_state.second = 0
         st.session_state.running = False
+        st.session_state.inject_high_pressure = False
+        st.session_state.inject_low_pressure = False
+        st.session_state.inject_sensor_failure = False
 
+    # High pressure fault button
+    if st.button(
+        "Inject High Pressure Fault",
+        disabled=not st.session_state.running
+    ):
+        st.session_state.inject_high_pressure = True
+        st.session_state.inject_low_pressure = False
+        st.session_state.inject_sensor_failure = False
+    
+    # Low pressure fault button
+    if st.button(
+        "Inject Low Pressure Fault",
+        disabled=not st.session_state.running
+    ):
+        st.session_state.inject_low_pressure = True
+        st.session_state.inject_high_pressure = False
+        st.session_state.inject_sensor_failure = False
+
+    # Sensor failure button
+    if st.button(
+        "Inject Sensor Failure (NaN)",
+        disabled=not st.session_state.running
+    ):
+        st.session_state.inject_sensor_failure = True
+        st.session_state.inject_high_pressure = False
+        st.session_state.inject_low_pressure = False
+
+    # Generate sensor readings only when running
     if st.session_state.running:
         second = st.session_state.second
 
-        # Generate sensor reading
+        # Generate normal sensor reading
         pressure = round(random.gauss(SETPOINT, 1.5), 2)
 
-        if second % 15 == 7:
-            pressure = 65.0
         
+        # Determine requested fault type
+        fault_type = None
+
+        if st.session_state.inject_high_pressure:
+            fault_type = "high"
+
+        elif st.session_state.inject_low_pressure:
+            fault_type = "low"
+
+        elif st.session_state.inject_sensor_failure:
+            fault_type = "sensor_failure"
+
+        # Apply fault using the tested function
+        pressure = inject_fault(pressure, fault_type)
+
+        # Clear fault requests after injection
+        st.session_state.inject_high_pressure = False
+        st.session_state.inject_low_pressure = False
+        st.session_state.inject_sensor_failure = False
+
         # Detect anomalies and validate sensor data
         try:
             status = classify_pressure(
@@ -73,9 +136,10 @@ def live_monitor():
             )
 
         else:
-            # Save only valid sensor readings
+            # Save valid sensor readings to SQLite
             save_reading("ETCH-001", pressure, status)
 
+            # Store readings in Session State
             st.session_state.readings.append({
                 "second": second,
                 "pressure_mTorr": pressure,
@@ -89,6 +153,7 @@ def live_monitor():
         st.session_state.readings = (
             st.session_state.readings[-60:]
         )
+
 
     # Display existing readings, even when paused
     df = pd.DataFrame(st.session_state.readings)
