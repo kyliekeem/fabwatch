@@ -17,7 +17,6 @@ The project demonstrates data generation, threshold-based anomaly detection, per
 - **Live Monitoring:** Updates equipment metrics and charts approximately every second.
 - **SQLite Storage:** Persists sensor readings across application restarts.
 - **Historical Analytics:** Calculates anomaly counts and anomaly rates using SQL queries.
-- **Automated Testing:** Validates anomaly detection logic with Pytest.
 - **Fault Injection:** Simulates high-pressure, low-pressure, and invalid sensor readings.
 - **Simulation Controls:** Supports Pause, Resume, and Reset operations.
 - **Sensor Validation:** Rejects NaN and infinite sensor readings.
@@ -106,12 +105,13 @@ Open the local URL displayed in the terminal.
 python -m pytest -v
 ```
 
-The current unit test suite covers:
+The automated test suite contains 12 tests:
 
-- Normal pressure readings
-- High-pressure anomalies
-- Low-pressure anomalies
-- Boundary conditions
+- **7 Anomaly Detection Tests:** Normal, high, low, boundary, NaN, and infinite sensor readings.
+- **4 Fault Injection Tests:** Normal operation, high pressure, low pressure, and sensor failure.
+- **1 Database Integration Test:** SQLite insertion and retrieval.
+
+Tests run locally with Pytest and automatically through GitHub Actions.
 
 ## Simulation Configuration
 
@@ -133,10 +133,16 @@ These are hypothetical values used for software development and testing, not val
 - Anomaly detection is threshold-based, not machine learning-based.
 - Live data generation runs within the Streamlit application.
 - The simulator currently models one equipment type.
-- Automated tests currently focus on the classification function.
+- Automated tests cover core logic and database writes; Streamlit UI interactions are verified manually.
 
 ## Project Status
 
-**Functional prototype — under active development.**
+**FabWatch v1.0 — Educational Prototype**
 
-Developed as an engineering portfolio project demonstrating Python software development, data processing, monitoring systems, SQL, and automated testing.
+The core monitoring, fault injection, data persistence,
+historical analytics, and automated testing features
+are implemented.
+
+This project uses synthetic data and is intended for
+engineering education and portfolio demonstration,
+not production semiconductor equipment control.
