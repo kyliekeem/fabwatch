@@ -18,6 +18,16 @@ The project demonstrates data generation, threshold-based anomaly detection, per
 - **SQLite Storage:** Persists sensor readings across application restarts.
 - **Historical Analytics:** Calculates anomaly counts and anomaly rates using SQL queries.
 - **Automated Testing:** Validates anomaly detection logic with Pytest.
+- **Fault Injection:** Simulates high-pressure, low-pressure, and invalid sensor readings.
+- **Simulation Controls:** Supports Pause, Resume, and Reset operations.
+- **Sensor Validation:** Rejects NaN and infinite sensor readings.
+- **CSV Export:** Exports historical anomaly records for further analysis.
+- **Automated Testing:** Includes 12 unit and integration tests.
+- **CI Pipeline:** Runs automated tests through GitHub Actions.
+
+## Dashboard Preview
+
+![FabWatch Monitoring Dashboard](docs/fabwatch-dashboard.png)
 
 ## Tech Stack
 
@@ -124,15 +134,6 @@ These are hypothetical values used for software development and testing, not val
 - Live data generation runs within the Streamlit application.
 - The simulator currently models one equipment type.
 - Automated tests currently focus on the classification function.
-
-## Planned Improvements
-
-- Refactor database and application modules
-- Add database integration tests
-- Set up GitHub Actions for continuous integration
-- Support additional simulated equipment parameters
-- Improve equipment monitoring and analytics
-- Explore statistical and machine learning anomaly detection
 
 ## Project Status
 
