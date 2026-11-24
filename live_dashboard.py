@@ -200,27 +200,33 @@ def live_monitor():
     st.subheader("Latest Sensor Readings")
     st.dataframe(df.tail(10).iloc[::-1], hide_index=True)
 
-    # Historical analytics from SQLite
+    
+# Historical analytics updates independently
+@st.fragment(run_every="5s")
+def historical_monitor():
     st.subheader("Historical Analytics")
 
     connection = sqlite3.connect("fabwatch.db")
 
-    total_readings = connection.execute(
-        "SELECT COUNT(*) FROM sensor_readings"
-    ).fetchone()[0]
+    try:
+        total_readings = connection.execute(
+            "SELECT COUNT(*) FROM sensor_readings"
+        ).fetchone()[0]
 
-    total_anomalies = connection.execute(
-        "SELECT COUNT(*) FROM sensor_readings WHERE status = 'WARNING'"
-    ).fetchone()[0]
+        total_anomalies = connection.execute(
+            "SELECT COUNT(*) FROM sensor_readings "
+            "WHERE status = 'WARNING'"
+        ).fetchone()[0]
 
-    anomaly_history = pd.read_sql_query("""
-        SELECT id, equipment_id, pressure, timestamp
-        FROM sensor_readings
-        WHERE status = 'WARNING'
-        ORDER BY id DESC
-    """, connection)
+        anomaly_history = pd.read_sql_query("""
+            SELECT id, equipment_id, pressure, timestamp
+            FROM sensor_readings
+            WHERE status = 'WARNING'
+            ORDER BY id DESC
+        """, connection)
 
-    connection.close()
+    finally:
+        connection.close()
 
     anomaly_rate = (
         total_anomalies / total_readings * 100
@@ -236,7 +242,6 @@ def live_monitor():
     st.subheader("Historical Anomaly Records")
     st.dataframe(anomaly_history, hide_index=True)
 
-    # Export historical anomalies as CSV
     st.download_button(
         label="Download Anomaly History",
         data=anomaly_history.to_csv(index=False),
@@ -245,4 +250,7 @@ def live_monitor():
         on_click="ignore"
     )
 
+
+# Run both monitoring sections
 live_monitor()
+historical_monitor()
