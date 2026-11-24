@@ -22,39 +22,86 @@ if "readings" not in st.session_state:
 if "second" not in st.session_state:
     st.session_state.second = 0
 
+# Simulation control
+if "running" not in st.session_state:
+    st.session_state.running = True
 
 # Automatically update every second
 @st.fragment(run_every="1s")
 def live_monitor():
+    
+    # Simulation controls
+    col1, col2 = st.columns(2)
 
-    second = st.session_state.second
+    with col1:
+        button_label = (
+            "Pause Simulation"
+            if st.session_state.running
+            else "Resume Simulation"
+        )
 
-    # Generate pressure reading
-    pressure = round(random.gauss(SETPOINT, 1.5), 2)
+        if st.button(button_label):
+            st.session_state.running = not st.session_state.running
 
-    # Inject an anomaly every 15 readings
-    if second % 15 == 7:
-        pressure = 65.0
+    with col2:
+        reset_clicked = st.button("Reset Simulation")
 
-    # Detect abnormal pressure
-    status = classify_pressure(pressure, LOWER_LIMIT, UPPER_LIMIT)
+    if reset_clicked:
+        st.session_state.readings = []
+        st.session_state.second = 0
+        st.session_state.running = False
 
-    # Save reading to SQLite database
-    save_reading("ETCH-001", pressure, status)
+    if st.session_state.running:
+        second = st.session_state.second
 
-    # Store the latest reading
-    st.session_state.readings.append({
-        "second": second,
-        "pressure_mTorr": pressure,
-        "status": status
-    })
+        # Generate sensor reading
+        pressure = round(random.gauss(SETPOINT, 1.5), 2)
 
-    st.session_state.second += 1
+        if second % 15 == 7:
+            pressure = 65.0
+        
+        # Detect anomalies and validate sensor data
+        try:
+            status = classify_pressure(
+                pressure, LOWER_LIMIT, UPPER_LIMIT
+            )
 
-    # Keep only the latest 60 readings
-    st.session_state.readings = st.session_state.readings[-60:]
+        except ValueError:
+            st.error(
+                "SENSOR ERROR: Invalid pressure reading. "
+                "Measurement skipped."
+            )
 
+        else:
+            # Save only valid sensor readings
+            save_reading("ETCH-001", pressure, status)
+
+            st.session_state.readings.append({
+                "second": second,
+                "pressure_mTorr": pressure,
+                "status": status
+            })
+
+        # Advance simulation time
+        st.session_state.second += 1
+
+        # Keep latest 60 valid readings
+        st.session_state.readings = (
+            st.session_state.readings[-60:]
+        )
+
+    # Display existing readings, even when paused
     df = pd.DataFrame(st.session_state.readings)
+
+    if df.empty:
+        st.info("No sensor readings available.")
+        return
+
+    pressure = float(df.iloc[-1]["pressure_mTorr"])
+    status = df.iloc[-1]["status"]
+
+    if not st.session_state.running:
+        st.info("Simulation PAUSED — displaying last recorded data.")
 
     anomaly_count = (df["status"] == "WARNING").sum()
 

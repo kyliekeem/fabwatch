@@ -21,3 +21,11 @@ def test_boundary_values():
 def test_invalid_sensor_reading():
     with pytest.raises(ValueError):
         classify_pressure(float("nan"))
+
+@pytest.mark.parametrize(
+    "invalid_value",
+    [float("inf"), float("-inf")]
+)
+def test_infinite_sensor_readings(invalid_value):
+    with pytest.raises(ValueError):
+        classify_pressure(invalid_value)
